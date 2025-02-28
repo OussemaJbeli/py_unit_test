@@ -1,70 +1,63 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-import time
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 import unittest
+import time
 
-class w3schooldsTest(unittest.TestCase):
+class BoonTest(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Chrome()  # Selenium will find ChromeDriver in PATH
+        options = Options()
+        options.add_argument('--start-maximized')
+        self.driver = webdriver.Chrome(options=options)
+        self.driver.get("https://boontest.netlify.app/")
+        self.wait = WebDriverWait(self.driver, 10)
+        time.sleep(2)  
 
-# test connection
+    def wait_and_click(self, by, value):
+        element = self.wait.until(EC.element_to_be_clickable((by, value)))
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
+        time.sleep(0.5)
+        element.click()
+
     def test_website_title(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        self.assertIn("BOON ", driver.title)
-        time.sleep(5)
-# test open sidebar
-    def test_opensidebar(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'openSideBar')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
-# test change language
-    def test_changeLanguage(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'languageButton')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
+        self.assertIn("Boon", self.driver.title)
 
-    def test_selectArabic(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'arabicSwitsh')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
-# test change mode
-    def test_changeMode(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'modeButton')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
+    def test_open_sidebar(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        self.wait.until(EC.visibility_of_element_located((By.ID, 'closeSideBar')))
 
-    def test_selectDark(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'darkModeSwitsh')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
-# test close didebar
-    def test_closesidebar(self):
-        driver = self.driver
-        driver.get("https://boontest.netlify.app/")
-        search = driver.find_element(By.ID, 'closeSideBar')
-        search.send_keys(Keys.RETURN)
-        self.assertIn("open sidebar")
-        time.sleep(2)
+    def test_change_language(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        self.wait_and_click(By.ID, 'languageButton')
+        self.wait.until(EC.visibility_of_element_located((By.ID, 'arabicSwitsh')))
+
+    def test_select_arabic(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        self.wait_and_click(By.ID, 'languageButton')
+        self.wait_and_click(By.ID, 'arabicSwitsh')
+        self.wait.until(lambda d: "نص عربي" in d.page_source)
+
+    def test_change_mode(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        self.wait_and_click(By.ID, 'modeButton')
+        self.wait.until(EC.visibility_of_element_located((By.ID, 'darkModeSwitsh')))
+
+    def test_select_dark_mode(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        self.wait_and_click(By.ID, 'modeButton')
+        self.wait_and_click(By.ID, 'darkModeSwitsh')
+        self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "dark")))
+
+    def test_close_sidebar(self):
+        self.wait_and_click(By.ID, 'openSideBar')
+        time.sleep(1)
+        self.wait_and_click(By.ID, 'closeSideBar')
+        self.wait.until(EC.invisibility_of_element_located((By.ID, 'closeSideBar')))
 
     def tearDown(self):
         self.driver.quit()
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
